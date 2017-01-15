@@ -12,15 +12,25 @@ namespace WebApplication.Controllers
         [HttpPost]
         public async Task<IActionResult> Webhook([FromBody] dynamic data)
         {
-            var statusUrl = data?.pull_request?.statuses_url;
-            if (statusUrl != null) 
+            try
             {
-                var client = new HttpClient();
-                var content = "{state: \"success\", target_url: \"http://repometric.com\", description: \"Hello Integration\", context: \"Repometric\"}";
-                var contentPost = new StringContent(content, System.Text.Encoding.UTF8, "application/json");
-                await client.PostAsync(statusUrl, contentPost);
+                var statusUrl = data?.pull_request?.statuses_url;
+                if (statusUrl != null) 
+                {
+                    var client = new HttpClient();
+                    client.DefaultRequestHeaders.Add("User-Agent", "Repometric");
+                    var content = "{state: \"success\", target_url: \"http://repometric.com\", description: \"Hello Integration\", context: \"Repometric\"}";
+                    var contentPost = new StringContent(content, System.Text.Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = await client.PostAsync(statusUrl.ToString(), contentPost);
+                    return Json(await response.Content.ReadAsStringAsync());
+                }
+
+                return Json(data.ToString());
             }
-            return Json(statusUrl);
+            catch (Exception e)
+            {
+                return Json(e.ToString());
+            }
         }
 
         public IActionResult Index()

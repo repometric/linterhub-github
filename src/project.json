@@ -39,7 +39,7 @@
       "version": "1.0.0-preview2-update1",
       "type": "build"
     },
-    "System.Net.Http": "4.0.0"
+    "System.Net.Http": "4.3.0"
   },
 
   "tools": {
