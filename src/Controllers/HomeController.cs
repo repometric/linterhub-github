@@ -8,6 +8,12 @@ namespace WebApplication.Controllers
 {
     public class HomeController : Controller
     {
+        [HttpPost]
+        public IActionResult Webhook([FromBody] string data)
+        {
+            return Json(data);
+        }
+
         public IActionResult Index()
         {
             return View();
