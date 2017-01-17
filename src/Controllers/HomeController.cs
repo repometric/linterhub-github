@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace WebApplication.Controllers
 {
@@ -17,15 +17,11 @@ namespace WebApplication.Controllers
                 var statusUrl = data?.pull_request?.statuses_url;
                 if (statusUrl != null) 
                 {
-                    var client = new HttpClient();
-                    client.DefaultRequestHeaders.Add("User-Agent", "Repometric");
-                    var content = "{state: \"success\", target_url: \"http://repometric.com\", description: \"Hello Integration\", context: \"Repometric\"}";
-                    var contentPost = new StringContent(content, System.Text.Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = await client.PostAsync(statusUrl.ToString(), contentPost);
-                    return Json(await response.Content.ReadAsStringAsync());
+                    await PostStatus(statusUrl.ToString(), "success", "Sanity check");
+                    return Json("Status posted");
                 }
 
-                return Json(data.ToString());
+                return Json("Unknown status url");
             }
             catch (Exception e)
             {
@@ -33,28 +29,24 @@ namespace WebApplication.Controllers
             }
         }
 
-        public IActionResult Index()
+        private async Task<string> PostStatus(string url, string status, string description)
         {
-            return View();
-        }
-
-        public IActionResult About()
-        {
-            ViewData["Message"] = "Your application description page.";
-
-            return View();
-        }
-
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
-        }
-
-        public IActionResult Error()
-        {
-            return View();
+            var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+            var content = new {
+                state = status, 
+                target_url = "http://repometric.com", 
+                description = description, 
+                context = "Repometric"
+            };
+            var json = JsonConvert.SerializeObject(content);
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "Repometric");
+                client.DefaultRequestHeaders.Add("Authorization", $"token {token}");
+                var contentPost = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(url, contentPost);
+                return await response.Content.ReadAsStringAsync();
+            }
         }
     }
 }
