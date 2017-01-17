@@ -14,10 +14,16 @@ namespace WebApplication.Controllers
         {
             try
             {
+                var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+                if (string.IsNullOrEmpty(token))
+                {
+                    return Json("Can't find a token");
+                }
+
                 var statusUrl = data?.pull_request?.statuses_url;
                 if (statusUrl != null) 
                 {
-                    await PostStatus(statusUrl.ToString(), "success", "Sanity check");
+                    await PostStatus(statusUrl.ToString(), token, "success", "Sanity check");
                     return Json("Status posted");
                 }
 
@@ -29,9 +35,8 @@ namespace WebApplication.Controllers
             }
         }
 
-        private async Task<string> PostStatus(string url, string status, string description)
+        private async Task<string> PostStatus(string url, string token, string status, string description)
         {
-            var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
             var content = new {
                 state = status, 
                 target_url = "http://repometric.com", 
