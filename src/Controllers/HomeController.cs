@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.Text;
+using System.Threading;
 
 namespace WebApplication.Controllers
 {
@@ -23,7 +24,9 @@ namespace WebApplication.Controllers
                 var statusUrl = data?.pull_request?.statuses_url;
                 if (statusUrl != null) 
                 {
-                    await PostStatus(statusUrl.ToString(), token, "success", "Sanity check");
+                    await PostStatus(statusUrl.ToString(), token, "pending", "Running analysis");
+                    Thread.Sleep(TimeSpan.FromSeconds(30));
+                    await PostStatus(statusUrl.ToString(), token, "success", "Sanity check completed");
                     return Json("Status posted");
                 }
 
