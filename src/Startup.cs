@@ -18,7 +18,8 @@ namespace WebApplication
 				.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
 				.AddInMemoryCollection(new Dictionary<string, string> {
 					{ GitSettingsEnum.GitPath.ToString(), GitSettings.Path },
-					{ GitSettingsEnum.GitHubToken.ToString(), GitSettings.GitHubToken }
+					{ GitSettingsEnum.GitHubToken.ToString(), GitSettings.GitHubToken },
+					{ CLISettingsEnum.CLIPath.ToString(), CLISettings.Path }
 				});
 
 			builder.AddEnvironmentVariables();

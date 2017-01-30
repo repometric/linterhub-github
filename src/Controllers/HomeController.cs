@@ -8,6 +8,7 @@ using src.Utils;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using System.Linq;
 
 namespace WebApplication.Controllers
 {
@@ -51,6 +52,7 @@ namespace WebApplication.Controllers
 					var statusUrl = data?.pull_request?.statuses_url;
 					if (statusUrl != null)
 					{
+						await PostStatus(statusUrl.ToString(), token, "pending", "Running analysis");
 						var cmdWrapper = new CmdWrapper();
 						var workingDirectory = $@"E:\dotNet\repometric\testing\{pullRequestFullName}_pr_{pullRequestNumber}";
 						if (!Directory.Exists(workingDirectory))
@@ -65,11 +67,38 @@ namespace WebApplication.Controllers
 							return Json(gitResult.RunException);
 						}
 
-						//Put here cli call
-						await PostStatus(statusUrl.ToString(), token, "pending", "Running analysis");
-						Thread.Sleep(TimeSpan.FromSeconds(30));
-						await PostStatus(statusUrl.ToString(), token, "success", "Sanity check completed");
-						return Json(gitResult.ToString());
+						var cliResult = cmdWrapper.RunExecutable(Configuration["CLIPath"], $"--mode=Analyze --project={workingDirectory} --linter=htmlhint", Path.GetDirectoryName(Configuration["CLIPath"]));
+						var output = cliResult.Output.ToString();
+						var cliData = JArray.Parse(output);
+						var files = (JArray)cliData.First["Model"]["Files"];
+						var haveErrors = false;
+
+						foreach(var file in files)
+						{
+							var errors = (JArray)file["Errors"];
+							haveErrors = errors.Any(e => e["Type"].ToString().ToLower() == "error");
+							if (haveErrors)
+							{
+								await PostStatus(statusUrl.ToString(), token, "error", "There are some errors in pull request");
+								break;
+							}
+						}
+
+						try
+						{
+							Directory.Delete(workingDirectory, true);
+						}
+						catch (UnauthorizedAccessException e)
+						{
+						}
+
+						if (!haveErrors)
+						{
+							await PostStatus(statusUrl.ToString(), token, "success", "Sanity check completed");
+							return Ok();
+						}
+
+						return Json(output);
 					}
 
 					return Json("Unknown status url");
