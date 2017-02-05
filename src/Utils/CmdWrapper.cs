@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace src.Utils
+namespace WebApplication.Utils
 {
 	public class CmdWrapper
 	{
@@ -15,7 +15,7 @@ namespace src.Utils
 		/// <param name="workingDirectory">The working directory.</param>
 		/// <param name="waitTimeout">The amount of time, in milliseconds, to wait for the associated process to exit.</param>
 		/// <returns>The <seealso cref="RunResults"/>.</returns>
-		public RunResults RunExecutable(string executablePath, string arguments, string workingDirectory, int waitTimeout = 5000)
+		public RunResults RunExecutable(string executablePath, string arguments, string workingDirectory, int waitTimeout = -1)
 		{
 			var runResults = new RunResults
 			{

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using linterhub;
 using System.Collections.Generic;
 
 namespace WebApplication
@@ -15,12 +14,7 @@ namespace WebApplication
 			var builder = new ConfigurationBuilder()
 				.SetBasePath(env.ContentRootPath)
 				.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-				.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-				.AddInMemoryCollection(new Dictionary<string, string> {
-					{ GitSettingsEnum.GitPath.ToString(), GitSettings.Path },
-					{ GitSettingsEnum.GitHubToken.ToString(), GitSettings.GitHubToken },
-					{ CLISettingsEnum.CLIPath.ToString(), CLISettings.Path }
-				});
+				.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
 
 			builder.AddEnvironmentVariables();
 			Configuration = builder.Build();
