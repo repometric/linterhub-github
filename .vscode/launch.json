@@ -28,11 +28,10 @@
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "GitPath": "/usr/bin/git",
-                "CliPath": "/Volumes/Repositories/Repometric/linterhub-cli/bin/bin/osx.10.11-x64/cli",
                 "TempPath": "temp",
-                "GitHubToken": "TOKEN",
-                "GitHubName": "Repometric",
-                "GitHubUrl": "http://repometric.com"
+                "GitHubToken": "TEST",
+                "GitHubName": "Test-Core-Integration",
+                "GitHubUrl": "http://google.com"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceRoot}/Views"

@@ -14,12 +14,6 @@ RUN npm --version
 RUN npm install -g jshint
 RUN jshint --version
 
-# cli
-WORKDIR /app/cli
-RUN curl -SLO "https://github.com/Repometric/linterhub-cli/releases/download/0.3.3/linterhub-cli-debian.8-x64-0.3.3.zip" && \
-    unzip "linterhub-cli-debian.8-x64-0.3.3.zip" -d /app/cli && \
-    rm "linterhub-cli-debian.8-x64-0.3.3.zip"
-
 # app
 COPY . /app
 WORKDIR /app/src
@@ -32,11 +26,9 @@ EXPOSE 8181/tcp
 ENV ASPNETCORE_URLS http://*:8181
 ENV GitPath /usr/bin/git
 ENV TempPath temp
-ENV GitHubToken TOKEN
-ENV GitHubName Repometric
-ENV GitHubUrl http://repometric.com
-
-ENV CliPath /app/cli/bin/debian.8-x64/cli
+ENV GitHubToken TEST
+ENV GitHubName Test-Core-Integration
+ENV GitHubUrl http://google.com
 
 # entrypoint
 ENTRYPOINT ["dotnet", "run"]

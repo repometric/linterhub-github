@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -12,11 +13,13 @@ namespace WebApplication.Utils
 {
     public class Helper
     {
-        private IConfiguration Configuration { get; set; }
+        private IConfiguration Configuration { get; }
+        private ILogger Log { get; }
 
-        public Helper(IConfiguration configuration)
+        public Helper(IConfiguration configuration, ILogger log)
         {
             Configuration = configuration;
+            Log = log;
         } 
 
         public string GetWorkingDirectory(string sha)
@@ -55,20 +58,14 @@ namespace WebApplication.Utils
 
         public bool RunAnalysis(string workingDirectory)
         {
-            var cli = Configuration["CliPath"];
-            var cliPath = Path.GetDirectoryName(cli);
-            var cliResult = new CmdWrapper().RunExecutable(cli, $"--mode=analyze --project={workingDirectory} --linter=jshint", cliPath);
+            var cliResult = new CmdWrapper().RunExecutable("/bin/bash", "-c \"jshint " + workingDirectory + "\"", workingDirectory);
             if (cliResult.ExitCode == -1)
             {
                 throw new Exception("CLI analysis error.", cliResult.RunException);
             }
 
             var output = cliResult.Output.ToString();
-            var cliData = JArray.Parse(output);
-            var files = (JArray)cliData.First["Model"]["Files"];
-            // TODO: Save errors and show details to the user later
-            var haveErrors = files.Any(file => ((JArray)file["Errors"]).Any());
-            return haveErrors;
+            return !string.IsNullOrEmpty(output.Trim());
         }
 
         public async Task<string> PostStatus(string statusUrl, string status, string description)
@@ -90,6 +87,9 @@ namespace WebApplication.Utils
                 client.DefaultRequestHeaders.Add("Authorization", $"token {token}");
                 var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await client.PostAsync(statusUrl, stringContent);
+
+                Log.LogInformation($"Status update: {status}. Result: {response.StatusCode}");
+
                 return await response.Content.ReadAsStringAsync();
             }
         }

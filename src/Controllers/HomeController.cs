@@ -2,17 +2,21 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using WebApplication.Utils;
 
 namespace WebApplication.Controllers
 {
 	public class HomeController : Controller
 	{
-		private IConfiguration Configuration { get; set; }
+		private IConfiguration Configuration { get; }
 
-		public HomeController(IConfiguration configuration)
+		private ILogger Log { get; }
+
+		public HomeController(IConfiguration configuration, ILogger<HomeController> log)
 		{
 			Configuration = configuration;
+			Log = log;
 		}
 
 		public IActionResult Index()
@@ -29,13 +33,14 @@ namespace WebApplication.Controllers
 			}
 			catch (Exception exception)
 			{
-				return Json(exception.ToString());
+				Log.LogError(exception.ToString());
+				return StatusCode(500, exception.Message);
 			}
 		}
 
 		private async Task<IActionResult> ProcessWebhook(dynamic data)
 		{
-			var helper = new Helper(Configuration);
+			var helper = new Helper(Configuration, Log);
 
 			string action = data?.action;
 			if (action != "opened" && action != "reopened")
